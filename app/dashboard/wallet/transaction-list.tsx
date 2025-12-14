@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowUpRight, ArrowDownLeft, RefreshCcw } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Separator } from "@/components/ui/separator";
 
 interface Transaction {
   id: string;
@@ -43,7 +44,7 @@ export function TransactionList({
               return (
                 <div
                   key={tx.id}
-                  className="flex items-center justify-between p-2 rounded-lg hover:bg-card transition"
+                  className="flex items-center justify-between border-b  p-2 rounded-lg hover:bg-card transition"
                 >
                   <div className="flex items-center gap-3">
                     <div
@@ -51,7 +52,7 @@ export function TransactionList({
                         "h-10 w-10 rounded-full flex items-center justify-center",
                         isIncoming
                           ? "bg-green-100 text-green-600"
-                          : "bg-slate-100 text-slate-600"
+                          : "bg-red-100 text-red-600"
                       )}
                     >
                       {isIncoming ? (
@@ -77,8 +78,8 @@ export function TransactionList({
 
                   <div
                     className={cn(
-                      "font-bold font-mono dark:text-slate-200",
-                      isIncoming ? "text-green-600" : "text-slate-900"
+                      "font-bold font-mono text-slate-200",
+                      isIncoming ? "text-green-600" : "text-red-600"
                     )}
                   >
                     {isIncoming ? "+" : "-"}

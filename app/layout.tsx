@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Ubuntu, Delius_Swash_Caps } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "@/components/ui/sonner"
+
 
 // 1. Configure the fonts
 const ubuntu = Ubuntu({
@@ -32,6 +34,7 @@ export default function RootLayout({
         className={`${ubuntu.variable} ${delius.variable} antialiased font-sans`}
       >
         {children}
+        <Toaster />
       </body>
     </html>
   );

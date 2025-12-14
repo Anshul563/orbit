@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { eq } from "drizzle-orm";
 import { user } from "@/db/schema";
 import { ProfileForm } from "./profile-form";
+import { ProfileImages } from "./profile-images"; // <--- Import the new component
 import { Separator } from "@/components/ui/separator";
 
 export default async function SettingsPage() {
@@ -22,24 +23,40 @@ export default async function SettingsPage() {
   if (!currentUser) return <div>User not found</div>;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div>
-        <h3 className="text-lg font-medium">Profile Settings</h3>
+    <div className="max-w-3xl mx-auto pb-10">
+      
+      {/* HEADER TEXT */}
+      <div className="mb-6 space-y-1">
+        <h3 className="text-2xl font-bold tracking-tight">Profile Settings</h3>
         <p className="text-sm text-muted-foreground">
-          Manage your public profile and your "Skill Swap" preferences.
+          Manage your public profile, cover photo, and skill preferences.
         </p>
       </div>
-      <Separator />
-      
-      <ProfileForm 
+
+      {/* NEW: IMAGES SECTION (Cover + Avatar) */}
+      <ProfileImages 
         initialData={{
-          name: currentUser.name,
-          university: currentUser.university,
-          bio: currentUser.bio,
-          skillsOffered: currentUser.skillsOffered,
-          skillsWanted: currentUser.skillsWanted
-        }} 
+            id: currentUser.id,
+            name: currentUser.name,
+            image: currentUser.image,
+            coverImage: currentUser.coverImage,
+        }}
       />
+
+      <div className="mt-16"> {/* Margin top to account for the overlapping avatar */}
+        <Separator className="my-6" />
+        
+        {/* EXISTING FORM */}
+        <ProfileForm 
+          initialData={{
+            name: currentUser.name,
+            university: currentUser.university,
+            bio: currentUser.bio,
+            skillsOffered: currentUser.skillsOffered,
+            skillsWanted: currentUser.skillsWanted
+          }} 
+        />
+      </div>
     </div>
   );
 }

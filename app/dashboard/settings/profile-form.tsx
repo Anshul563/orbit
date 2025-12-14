@@ -24,6 +24,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { SKILLS_LIST } from "@/lib/skills-data"; // Import your new data file
+import { toast } from "sonner";
 
 interface ProfileFormProps {
   initialData: {
@@ -71,8 +72,11 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
     try {
       await updateProfile(formData);
       router.refresh();
+      router.push("/dashboard/profile");
+      toast.success("Profile updated successfully");
     } catch (error) {
       console.error(error);
+      toast.error("Failed to update profile");
     } finally {
       setIsLoading(false);
     }
@@ -94,7 +98,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
     label: string,
     colorClass: string
   }) => (
-    <div className={`space-y-3 p-4 border rounded-lg ${colorClass}`}>
+    <div className={`space-y-3 p-4 border rounded-lg `}>
       <div className="space-y-1">
           <Label className="font-semibold">{label}</Label>
           <p className="text-xs text-slate-500">Select up to 10 skills.</p>
@@ -106,7 +110,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-full justify-between bg-white"
+            className="w-full justify-between "
           >
             {selected.length > 0 
               ? `${selected.length} skills selected` 
@@ -149,13 +153,13 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
           <Badge 
             key={skill} 
             variant="secondary" 
-            className="bg-white border shadow-sm pl-2 pr-1 py-1 flex items-center gap-1"
+            className="border shadow-sm pl-2 pr-1 py-1 flex items-center gap-1"
           >
             {skill}
             <button
               type="button"
               onClick={() => removeSkill(skill, selected, setSelected)}
-              className="hover:bg-slate-200 rounded-full p-0.5 transition"
+              className=" rounded-full p-0.5 transition"
             >
               <X className="h-3 w-3 text-slate-500" />
             </button>

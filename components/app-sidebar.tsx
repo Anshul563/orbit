@@ -38,14 +38,22 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
+import Image from "next/image";
+import { LayoutPanelTopIcon } from "./icons/LayoutPanelTopIcon";
+import { SearchIcon } from "./icons/SearchIcon";
+import { UsersIcon } from "./icons/UsersIcon";
+import { MessageSquareIcon } from "./icons/MessageSquareIcon";
+import { WaypointsIcon } from "./icons/WaypointsIcon";
+import { BookTextIcon } from "./icons/BookTextIcon";
+import { GalleryVerticalEndIcon } from "./icons/GalleryVerticalEndIcon";
 
 const sidebarItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-  { icon: Search, label: "Marketplace", href: "/dashboard/market" },
-  { icon: Briefcase, label: "Projects", href: "/dashboard/projects" },
-  { icon: Users2Icon, label: "Communities", href: "/dashboard/community" },
-  { icon: MessageSquare, label: "Messages", href: "/dashboard/messages" },
-  { icon: Headphones, label: "Study Rooms", href: "/dashboard/study" },
+  { icon: LayoutPanelTopIcon, label: "Dashboard", href: "/dashboard" },
+  { icon: SearchIcon, label: "Marketplace", href: "/dashboard/market" },
+  { icon: WaypointsIcon, label: "Projects", href: "/dashboard/projects" },
+  { icon: UsersIcon, label: "Communities", href: "/dashboard/community" },
+  { icon: MessageSquareIcon, label: "Messages", href: "/dashboard/messages" },
+  { icon: BookTextIcon, label: "Study Rooms", href: "/dashboard/study" },
 ];
 
 interface AppSidebarProps {
@@ -64,22 +72,22 @@ export function AppSidebar({ user }: AppSidebarProps) {
     <TooltipProvider delayDuration={0}>
       <div
         className={cn(
-          "relative flex h-screen flex-col border-r bg-card transition-all duration-300 ease-in-out",
+          "relative flex h-screen flex-col border-r transition-all duration-300 ease-in-out",
           isCollapsed ? "w-16" : "w-64"
         )}
       >
         {/* Toggle Button */}
-        <div className="absolute -right-3 top-5 z-20">
+        <div className="absolute -right-3 top-13 z-20">
           <Button
-            variant="outline"
+            variant="secondary"
             size="icon"
-            className="h-6 w-6 rounded-sm border bg-background shadow-md hover:bg-accent"
+            className="h-6 w-6 rounded-sm border bg-accent dark:bg-card shadow-md"
             onClick={() => setIsCollapsed(!isCollapsed)}
           >
             {isCollapsed ? (
-              <ChevronRight className="h-3 w-3" />
+              <ChevronRight className="h-3 w-3 text-primary" />
             ) : (
-              <ChevronLeft className="h-3 w-3" />
+              <ChevronLeft className="h-3 w-3 text-primary" />
             )}
           </Button>
         </div>
@@ -91,11 +99,11 @@ export function AppSidebar({ user }: AppSidebarProps) {
             isCollapsed ? "justify-center" : "px-6"
           )}
         >
-          <div className="flex items-center gap-2 font-display font-bold text-primary">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              O
+          <div className="flex items-center font-display font-bold text-primary">
+            <div className="flex items-center justify-center rounded-lg text-primary-foreground">
+              <Image alt="logo" src={"/text.png"} width={80} height={80} />
             </div>
-            {!isCollapsed && <span className="text-xl">Orbit</span>}
+            {/* {!isCollapsed && <span className="text-2xl flex font-bold items-center bg-linear-to-t from-[#061c2d] to-[#184972] text-transparent bg-clip-text">rbit</span>} */}
           </div>
         </div>
 
@@ -170,7 +178,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
                 variant="outline"
                 className="w-full justify-start gap-3 border-dashed"
               >
-                <CreditCard className="h-4 w-4" /> Wallet
+                <GalleryVerticalEndIcon className="h-4 w-4" /> Wallet
               </Button>
             </Link>
           )}
@@ -225,9 +233,11 @@ export function AppSidebar({ user }: AppSidebarProps) {
                   <Settings className="h-4 w-4" /> Settings
                 </DropdownMenuItem>
               </Link>
+              <Link href="/dashboard/profile">
               <DropdownMenuItem className="cursor-pointer gap-2">
                 <User className="h-4 w-4" /> Profile
               </DropdownMenuItem>
+              </Link>
               <DropdownMenuSeparator />
               {/* Theme Toggler inside menu for cleaner UI */}
               <div className="px-2 py-1.5 flex items-center justify-between">

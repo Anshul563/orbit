@@ -28,7 +28,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       {/* 2. Apply the variables to the body */}
       <body
         className={`${ubuntu.variable} ${delius.variable} antialiased font-sans`}

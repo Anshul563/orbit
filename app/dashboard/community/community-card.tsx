@@ -36,7 +36,6 @@ export function CommunityCard({ community }: { community: CommunityProps }) {
 
   return (
     <Card className="flex flex-col h-full border hover:border-blue-300 transition-colors">
-
       <CardHeader className="pb-2">
         <CardTitle className="flex justify-between items-start">
           <span className="text-xl font-bold line-clamp-1">
@@ -71,10 +70,10 @@ export function CommunityCard({ community }: { community: CommunityProps }) {
         </div>
       </CardContent>
 
-      <CardFooter className="pt-0 flex justify-between items-center text-sm border-t p-4 ">
+      <CardFooter className="pt-0 flex justify-around gap-8 items-center text-sm border-t p-4 ">
         <div className="flex items-center gap-1">
           <Users className="h-4 w-4" />
-          <span>{community.memberCount} members</span>
+          <span>{community.memberCount}</span>
         </div>
 
         {community.isMember ? (
@@ -82,10 +81,7 @@ export function CommunityCard({ community }: { community: CommunityProps }) {
             href={`/dashboard/community/${community.id}`}
             className="w-full"
           >
-            <Button
-              variant="secondary"
-              className="w-full bg-green-100 text-green-700 hover:bg-green-200"
-            >
+            <Button variant="secondary" className="w-[80%]">
               Open Chat
             </Button>
           </Link>
@@ -95,7 +91,7 @@ export function CommunityCard({ community }: { community: CommunityProps }) {
             onClick={handleJoin}
             disabled={loading}
             variant="outline"
-            className="gap-2"
+            className="gap-2 w-[80%]"
           >
             <LogIn className="h-4 w-4" /> Join
           </Button>

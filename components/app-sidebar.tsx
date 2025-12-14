@@ -2,21 +2,17 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, redirect } from "next/navigation";
 import {
-  LayoutDashboard,
-  Search,
-  MessageSquare,
-  Headphones,
-  Briefcase,
-  Settings,
-  CreditCard,
-  Users2Icon,
   ChevronLeft,
   ChevronRight,
+  CreditCard,
   LogOut,
-  User,
   MoreVertical,
+  Settings,
+  User,
+  Menu,
+  X,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -46,6 +42,7 @@ import { MessageSquareIcon } from "./icons/MessageSquareIcon";
 import { WaypointsIcon } from "./icons/WaypointsIcon";
 import { BookTextIcon } from "./icons/BookTextIcon";
 import { GalleryVerticalEndIcon } from "./icons/GalleryVerticalEndIcon";
+import { authClient } from "@/lib/auth-client";
 
 const sidebarItems = [
   { icon: LayoutPanelTopIcon, label: "Dashboard", href: "/dashboard" },
@@ -64,20 +61,55 @@ interface AppSidebarProps {
   };
 }
 
+const handleLogout = async () => {
+  await authClient.signOut();
+  redirect("/");
+};
+
 export function AppSidebar({ user }: AppSidebarProps) {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = React.useState(false);
+  const [isMobileOpen, setIsMobileOpen] = React.useState(false);
+
+  // Automatically close sidebar when resizing back to desktop
+  React.useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 768) setIsMobileOpen(false);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <TooltipProvider delayDuration={0}>
+      {/* MOBILE HEADER */}
+      <div className="md:hidden fixed top-0 left-0 z-50 w-full bg-background border-b flex items-center justify-between px-4 py-2">
+        <div className="flex items-center gap-2">
+          <Image src="/text.png" alt="logo" width={40} height={40} />
+          <span className="font-bold text-primary">Orbit</span>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsMobileOpen(!isMobileOpen)}
+        >
+          {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </Button>
+      </div>
+
+      {/* SIDEBAR (Desktop + Mobile) */}
       <div
         className={cn(
-          "relative flex h-screen flex-col border-r transition-all duration-300 ease-in-out",
-          isCollapsed ? "w-16" : "w-64"
+          "fixed md:static z-40 top-0 left-0 h-screen flex flex-col border-r bg-background transition-all duration-300 ease-in-out",
+          isCollapsed ? "w-16" : "w-64",
+          // Mobile slide-in logic
+          "md:translate-x-0",
+          isMobileOpen ? "translate-x-0" : "-translate-x-full",
+          "md:flex"
         )}
       >
-        {/* Toggle Button */}
-        <div className="absolute -right-3 top-13 z-20">
+        {/* Collapse toggle (Desktop only) */}
+        <div className="hidden md:block absolute -right-3 top-14 z-20">
           <Button
             variant="secondary"
             size="icon"
@@ -95,37 +127,33 @@ export function AppSidebar({ user }: AppSidebarProps) {
         {/* Logo Area */}
         <div
           className={cn(
-            "flex h-16 items-center",
+            "flex h-16 items-center border-b",
             isCollapsed ? "justify-center" : "px-6"
           )}
         >
-          <div className="flex items-center font-display font-bold text-primary">
-            <div className="flex items-center justify-center rounded-lg text-primary-foreground">
-              <Image alt="logo" src={"/text.png"} width={80} height={80} />
-            </div>
-            {/* {!isCollapsed && <span className="text-2xl flex font-bold items-center bg-linear-to-t from-[#061c2d] to-[#184972] text-transparent bg-clip-text">rbit</span>} */}
+          <div className="flex items-center font-bold text-primary">
+            <Image alt="logo" src="/text.png" width={80} height={80} />
           </div>
         </div>
 
         <Separator />
 
         {/* Navigation Links */}
-        <nav className="flex-1 space-y-1 p-2">
+        <nav className="flex-1 space-y-1 p-2 overflow-y-auto">
           {sidebarItems.map((item) => {
             const isActive = pathname === item.href;
 
             return isCollapsed ? (
-              // Collapsed View (Icons Only + Tooltip)
+              // Collapsed View
               <Tooltip key={item.href}>
                 <TooltipTrigger asChild>
-                  <Link href={item.href}>
+                  <Link href={item.href} onClick={() => setIsMobileOpen(false)}>
                     <Button
                       variant={isActive ? "secondary" : "ghost"}
                       size="icon"
                       className={cn(
                         "h-10 w-10",
-                        isActive &&
-                          "bg-primary/10 text-primary hover:bg-primary/20"
+                        isActive && "bg-primary/10 text-primary hover:bg-primary/20"
                       )}
                     >
                       <item.icon className="h-5 w-5" />
@@ -133,16 +161,16 @@ export function AppSidebar({ user }: AppSidebarProps) {
                     </Button>
                   </Link>
                 </TooltipTrigger>
-                <TooltipContent
-                  side="right"
-                  className="bg-popover text-popover-foreground"
-                >
-                  {item.label}
-                </TooltipContent>
+                <TooltipContent side="right">{item.label}</TooltipContent>
               </Tooltip>
             ) : (
-              // Expanded View (Icon + Label)
-              <Link key={item.href} href={item.href} className="block">
+              // Expanded View
+              <Link
+                key={item.href}
+                href={item.href}
+                className="block"
+                onClick={() => setIsMobileOpen(false)}
+              >
                 <Button
                   variant={isActive ? "secondary" : "ghost"}
                   className={cn(
@@ -159,12 +187,12 @@ export function AppSidebar({ user }: AppSidebarProps) {
           })}
         </nav>
 
-        {/* Footer Actions (Wallet, etc.) */}
-        <div className="p-2">
+        {/* Wallet */}
+        <div className="p-2 border-t">
           {isCollapsed ? (
             <Tooltip>
               <TooltipTrigger asChild>
-                <Link href="/dashboard/wallet">
+                <Link href="/dashboard/wallet" onClick={() => setIsMobileOpen(false)}>
                   <Button variant="outline" size="icon" className="h-10 w-10">
                     <CreditCard className="h-4 w-4" />
                   </Button>
@@ -173,7 +201,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
               <TooltipContent side="right">Wallet</TooltipContent>
             </Tooltip>
           ) : (
-            <Link href="/dashboard/wallet">
+            <Link href="/dashboard/wallet" onClick={() => setIsMobileOpen(false)}>
               <Button
                 variant="outline"
                 className="w-full justify-start gap-3 border-dashed"
@@ -186,8 +214,8 @@ export function AppSidebar({ user }: AppSidebarProps) {
 
         <Separator />
 
-        {/* User Profile Section */}
-        <div className="p-3">
+        {/* User Profile */}
+        <div className="p-3 border-t">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -199,16 +227,12 @@ export function AppSidebar({ user }: AppSidebarProps) {
               >
                 <Avatar className="h-8 w-8 border">
                   <AvatarImage src={user.image || ""} alt={user.name} />
-                  <AvatarFallback>
-                    {user.name.charAt(0).toUpperCase()}
-                  </AvatarFallback>
+                  <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
 
                 {!isCollapsed && (
                   <div className="ml-3 flex flex-1 flex-col items-start text-left overflow-hidden">
-                    <span className="text-sm font-medium truncate w-full">
-                      {user.name}
-                    </span>
+                    <span className="text-sm font-medium truncate w-full">{user.name}</span>
                     <span className="text-xs text-muted-foreground truncate w-full">
                       {user.email}
                     </span>
@@ -228,30 +252,40 @@ export function AppSidebar({ user }: AppSidebarProps) {
             >
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <Link href="/dashboard/settings">
+              <Link href="/dashboard/settings" onClick={() => setIsMobileOpen(false)}>
                 <DropdownMenuItem className="cursor-pointer gap-2">
                   <Settings className="h-4 w-4" /> Settings
                 </DropdownMenuItem>
               </Link>
-              <Link href="/dashboard/profile">
-              <DropdownMenuItem className="cursor-pointer gap-2">
-                <User className="h-4 w-4" /> Profile
-              </DropdownMenuItem>
+              <Link href="/dashboard/profile" onClick={() => setIsMobileOpen(false)}>
+                <DropdownMenuItem className="cursor-pointer gap-2">
+                  <User className="h-4 w-4" /> Profile
+                </DropdownMenuItem>
               </Link>
               <DropdownMenuSeparator />
-              {/* Theme Toggler inside menu for cleaner UI */}
               <div className="px-2 py-1.5 flex items-center justify-between">
                 <span className="text-sm">Theme</span>
                 <AnimatedThemeToggler />
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer gap-2 text-red-600 focus:text-red-600 focus:bg-red-50">
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="cursor-pointer gap-2 text-red-600 focus:text-red-600 focus:bg-red-50"
+              >
                 <LogOut className="h-4 w-4" /> Log out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
+
+      {/* BACKDROP for Mobile */}
+      {isMobileOpen && (
+        <div
+          onClick={() => setIsMobileOpen(false)}
+          className="fixed inset-0 bg-black/50 z-30 md:hidden backdrop-blur-sm"
+        />
+      )}
     </TooltipProvider>
   );
 }

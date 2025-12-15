@@ -12,10 +12,14 @@ import { joinCommunity } from "../actions";
 import { MemberListModal } from "./member-list-modal"; // Ensure this matches your filename
 
 // Note: params is a Promise in Next.js 15
-export default async function CommunityDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function CommunityDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const resolvedParams = await params;
   const communityId = resolvedParams.id;
-  
+
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -30,10 +34,10 @@ export default async function CommunityDetailPage({ params }: { params: Promise<
         // 👇 CRITICAL FIX: We must fetch the nested 'user' object
         // so the Modal can show names and avatars.
         with: {
-          user: true 
-        }
-      }
-    }
+          user: true,
+        },
+      },
+    },
   });
 
   if (!comm) return <div>Community not found</div>;
@@ -49,12 +53,14 @@ export default async function CommunityDetailPage({ params }: { params: Promise<
           <h1 className="text-2xl font-bold">{comm.name}</h1>
           <p className="text-slate-500 max-w-md">{comm.description}</p>
         </div>
-        
-        <form action={async () => {
-          "use server";
-          await joinCommunity(communityId);
-        }}>
-           <Button size="lg">Join to Chat</Button>
+
+        <form
+          action={async () => {
+            "use server";
+            await joinCommunity(communityId);
+          }}
+        >
+          <Button size="lg">Join to Chat</Button>
         </form>
       </div>
     );
@@ -62,7 +68,6 @@ export default async function CommunityDetailPage({ params }: { params: Promise<
 
   return (
     <div className="max-w-5xl mx-auto h-full flex flex-col gap-4">
-      
       {/* Header */}
       <div className="flex items-center justify-between pb-4 border-b">
         <div className="flex items-center gap-4">
@@ -72,25 +77,24 @@ export default async function CommunityDetailPage({ params }: { params: Promise<
             </Button>
           </Link>
           <div>
-            <h1 className="text-xl font-bold flex items-center gap-2">
+            <h1 className="text-lg font-bold flex items-center gap-2 truncate">
               {comm.name}
-              
             </h1>
             <p className="text-sm text-slate-500">{comm.description}</p>
           </div>
         </div>
-        
-        <div className="flex items-center">
-           {/* Now passing the fully populated members list */}
-           <MemberListModal 
-             members={comm.members} 
-             ownerId={comm.ownerId} 
-           />
+
+        <div className="flex sm:hidden items-center">
+          {/* Now passing the fully populated members list */}
+          <MemberListModal members={comm.members} ownerId={comm.ownerId} />
         </div>
       </div>
 
       {/* The Chat Room */}
-      <CommunityChat communityId={communityId} currentUserId={session.user.id} />
+      <CommunityChat
+        communityId={communityId}
+        currentUserId={session.user.id}
+      />
     </div>
   );
 }

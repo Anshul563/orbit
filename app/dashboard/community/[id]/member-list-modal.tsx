@@ -34,7 +34,6 @@ export function MemberListModal({ members, ownerId }: MemberListModalProps) {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
 
-  // Filter members based on search input
   const filteredMembers = members.filter((m) =>
     m.user.name.toLowerCase().includes(search.toLowerCase())
   );
@@ -42,71 +41,80 @@ export function MemberListModal({ members, ownerId }: MemberListModalProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
-          <Users className="h-4 w-4" />{members.length} Members
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2 px-3 py-1.5 text-sm sm:text-base"
+        >
+          <Users className="h-4 w-4" />
+          {members.length} Members
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+
+      <DialogContent className="w-[95%] sm:max-w-[450px] rounded-lg p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle>Community Members ({members.length})</DialogTitle>
+          <DialogTitle className="text-base sm:text-lg text-center sm:text-left">
+            Community Members ({members.length})
+          </DialogTitle>
         </DialogHeader>
-        
-        <div className="space-y-4">
+
+        <div className="space-y-4 mt-2 sm:mt-3">
           {/* Search Bar */}
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
             <Input
               placeholder="Search members..."
-              className="pl-9"
+              className="pl-9 text-sm"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
 
           {/* Member List */}
-          <ScrollArea className="h-[300px] pr-4">
-            <div className="space-y-3">
+          <ScrollArea className="h-[60vh] sm:h-[320px] pr-2 sm:pr-4">
+            <div className="space-y-2 sm:space-y-3">
               {filteredMembers.length === 0 ? (
-                <p className="text-center text-sm text-slate-500 py-4">
+                <p className="text-center text-sm text-slate-500 py-6">
                   No members found.
                 </p>
               ) : (
                 filteredMembers.map((member) => {
                   const isOwner = member.user.id === ownerId;
-                  
+
                   return (
                     <div
                       key={member.userId}
-                      className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50"
+                      className="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 transition"
                     >
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-9 w-9 border">
+                      <div className="flex items-center gap-2 sm:gap-3 w-full overflow-hidden">
+                        <Avatar className="h-8 w-8 sm:h-9 sm:w-9 border shrink-0">
                           <AvatarImage src={member.user.image || ""} />
                           <AvatarFallback>
-                            {member.user.name.charAt(0)}
+                            {member.user.name.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        
-                        <div className="flex flex-col">
+
+                        <div className="flex flex-col min-w-0 w-full">
                           <div className="flex items-center gap-1.5">
-                            <span className="font-medium text-sm text-slate-900">
+                            <span className="font-medium text-sm text-slate-900 truncate max-w-[100px] sm:max-w-[150px]">
                               {member.user.name}
                             </span>
-                            {/* Admin Badge */}
                             {isOwner && (
-                              <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-yellow-100 text-[10px] font-bold text-yellow-700 border border-yellow-200">
+                              <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-yellow-100 text-[10px] font-semibold text-yellow-700 border border-yellow-200 shrink-0">
                                 <Crown className="h-3 w-3" /> Admin
                               </span>
                             )}
                           </div>
-                          <span className="text-xs text-slate-500">
+                          <span className="text-xs text-slate-500 truncate max-w-[140px] sm:max-w-[200px]">
                             {member.user.email}
                           </span>
                         </div>
                       </div>
-                      
-                      <span className="text-[10px] text-slate-400">
-                        {new Date(member.joinedAt || new Date()).toLocaleDateString()}
+
+                      <span className="text-[10px] text-slate-400 ml-2 shrink-0">
+                        {new Date(
+                          member.joinedAt || new Date()
+                        ).toLocaleDateString()}
                       </span>
                     </div>
                   );

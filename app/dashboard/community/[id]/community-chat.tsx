@@ -31,7 +31,11 @@ export function CommunityChat({ communityId, currentUserId }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
-  const [attachment, setAttachment] = useState<{ url: string; type: string; name: string } | null>(null);
+  const [attachment, setAttachment] = useState<{
+    url: string;
+    type: string;
+    name: string;
+  } | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -78,11 +82,16 @@ export function CommunityChat({ communityId, currentUserId }: ChatProps) {
     setInput("");
     setAttachment(null);
 
-    await sendCommunityMessage(communityId, tempContent, tempAttachment?.url, tempAttachment?.type);
+    await sendCommunityMessage(
+      communityId,
+      tempContent,
+      tempAttachment?.url,
+      tempAttachment?.type
+    );
   };
 
   return (
-    <div className="flex flex-col h-[600px] border border-border rounded-lg overflow-hidden bg-background">
+    <div className="flex flex-col flex-1 min-h-0 border border-border rounded-lg overflow-hidden bg-background">
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
         {loading ? (
@@ -97,7 +106,10 @@ export function CommunityChat({ communityId, currentUserId }: ChatProps) {
           messages.map((msg) => {
             const isMe = msg.senderId === currentUserId;
             return (
-              <div key={msg.id} className={cn("flex gap-3", isMe && "flex-row-reverse")}>
+              <div
+                key={msg.id}
+                className={cn("flex gap-3", isMe && "flex-row-reverse")}
+              >
                 {!isMe && (
                   <Avatar className="h-8 w-8 mt-1">
                     <AvatarImage src={msg.sender.image || ""} />
@@ -105,7 +117,12 @@ export function CommunityChat({ communityId, currentUserId }: ChatProps) {
                   </Avatar>
                 )}
 
-                <div className={cn("flex flex-col max-w-[70%]", isMe && "items-end")}>
+                <div
+                  className={cn(
+                    "flex flex-col max-w-[70%]",
+                    isMe && "items-end"
+                  )}
+                >
                   {!isMe && (
                     <span className="text-[10px] text-muted-foreground ml-1">
                       {msg.sender.name}
@@ -124,7 +141,7 @@ export function CommunityChat({ communityId, currentUserId }: ChatProps) {
                     {msg.attachmentUrl && (
                       <div className="mb-2">
                         {msg.attachmentType === "image" ? (
-                          <div className="relative w-48 h-32 rounded-md overflow-hidden border border-border">
+                          <div className="relative w-full max-w-[240px] aspect-video rounded-md overflow-hidden border border-border/50">
                             <Image
                               src={msg.attachmentUrl}
                               alt="attachment"
@@ -136,19 +153,26 @@ export function CommunityChat({ communityId, currentUserId }: ChatProps) {
                           <video
                             src={msg.attachmentUrl}
                             controls
-                            className="w-64 rounded-md border border-border"
+                            className="w-full max-w-[240px] rounded-md border border-border"
                           />
                         ) : (
                           <a
                             href={msg.attachmentUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-2 text-foreground bg-muted px-2 py-1 rounded-md border transition hover:bg-muted/70"
+                            className="flex items-center gap-3 p-2 rounded-md bg-background/20 backdrop-blur-sm border border-white/10 hover:bg-background/30 transition-colors w-full max-w-[240px]"
                           >
-                            <FileText className="h-4 w-4 text-primary" />
-                            <span className="underline underline-offset-2 text-sm">
-                              Download PDF
-                            </span>
+                            <div className="p-2 rounded-full bg-white/20">
+                              <FileText className="h-4 w-4" />
+                            </div>
+                            <div className="flex flex-col overflow-hidden">
+                              <span className="text-xs font-medium truncate">
+                                Attachment
+                              </span>
+                              <span className="text-[10px] opacity-80 uppercase">
+                                {msg.attachmentType || "FILE"}
+                              </span>
+                            </div>
                           </a>
                         )}
                       </div>
@@ -158,7 +182,9 @@ export function CommunityChat({ communityId, currentUserId }: ChatProps) {
                   </div>
 
                   <span className="text-[10px] text-muted-foreground mt-1 mx-1">
-                    {msg.createdAt ? format(new Date(msg.createdAt), "h:mm a") : "..."}
+                    {msg.createdAt
+                      ? format(new Date(msg.createdAt), "h:mm a")
+                      : "..."}
                   </span>
                 </div>
               </div>
@@ -205,19 +231,24 @@ export function CommunityChat({ communityId, currentUserId }: ChatProps) {
               if (res && res[0]) {
                 const file = res[0];
                 let type = "file";
-                if (file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i)) type = "image";
+                if (file.name.match(/\.(jpg|jpeg|png|gif|webp)$/i))
+                  type = "image";
                 else if (file.name.match(/\.(mp4|webm)$/i)) type = "video";
                 else if (file.name.match(/\.pdf$/i)) type = "pdf";
                 setAttachment({ url: file.url, type, name: file.name });
               }
             }}
-            onUploadError={(error: Error) => alert(`Upload failed: ${error.message}`)}
+            onUploadError={(error: Error) =>
+              alert(`Upload failed: ${error.message}`)
+            }
           />
 
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={attachment ? "Add a caption..." : "Message the group..."}
+            placeholder={
+              attachment ? "Add a caption..." : "Message the group..."
+            }
             className="flex-1"
           />
           <Button

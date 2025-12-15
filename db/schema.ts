@@ -27,7 +27,6 @@ export const transactionTypeEnum = pgEnum("transaction_type", [
   "escrow_lock",
   "escrow_release",
   "system_reward",
-  
 ]);
 
 // ----------------------------------------------------------------------
@@ -59,7 +58,9 @@ export const session = pgTable("session", {
   updatedAt: timestamp("updated_at").notNull(),
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
-  userId: text("user_id").notNull().references(() => user.id),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id),
 });
 
 export const account = pgTable("account", {
@@ -204,24 +205,39 @@ export const community = pgTable("community", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
   description: text("description").notNull(),
-  ownerId: text("owner_id").references(() => user.id).notNull(),
+  ownerId: text("owner_id")
+    .references(() => user.id)
+    .notNull(),
   createdAt: timestamp("created_at").defaultNow(),
-  color: text("color").default("bg-blue-600"), // For visual customization
+  color: text("color").default("bg-blue-600"),
+  isPrivate: boolean("is_private").default(false), // true = hidden from search
+  image: text("image"),
+  coverImage: text("cover_image"), // NEW: Cover Image (16:9)
+  inviteCode: text("invite_code").unique(), // For sharing links (e.g., /join/abc-123)
 });
 
 export const communityMember = pgTable("community_member", {
   id: uuid("id").defaultRandom().primaryKey(),
-  communityId: uuid("community_id").references(() => community.id).notNull(),
-  userId: text("user_id").references(() => user.id).notNull(),
+  communityId: uuid("community_id")
+    .references(() => community.id)
+    .notNull(),
+  userId: text("user_id")
+    .references(() => user.id)
+    .notNull(),
   joinedAt: timestamp("joined_at").defaultNow(),
+  role: text("role").default("member"),
 });
 
 export const communityMessage = pgTable("community_message", {
   id: uuid("id").defaultRandom().primaryKey(),
-  communityId: uuid("community_id").references(() => community.id).notNull(),
-  senderId: text("sender_id").references(() => user.id).notNull(),
+  communityId: uuid("community_id")
+    .references(() => community.id)
+    .notNull(),
+  senderId: text("sender_id")
+    .references(() => user.id)
+    .notNull(),
   content: text("content").notNull(),
-  attachmentUrl: text("attachment_url"),   // <--- New Column
+  attachmentUrl: text("attachment_url"), // <--- New Column
   attachmentType: text("attachment_type"),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -238,27 +254,33 @@ export const communityRelations = relations(community, ({ one, many }) => ({
   members: many(communityMember),
 }));
 
-export const communityMessageRelations = relations(communityMessage, ({ one }) => ({
-  community: one(community, {
-    fields: [communityMessage.communityId],
-    references: [community.id],
-  }),
-  sender: one(user, {
-    fields: [communityMessage.senderId],
-    references: [user.id],
-  }),
-}));
+export const communityMessageRelations = relations(
+  communityMessage,
+  ({ one }) => ({
+    community: one(community, {
+      fields: [communityMessage.communityId],
+      references: [community.id],
+    }),
+    sender: one(user, {
+      fields: [communityMessage.senderId],
+      references: [user.id],
+    }),
+  })
+);
 
-export const communityMemberRelations = relations(communityMember, ({ one }) => ({
-  community: one(community, {
-    fields: [communityMember.communityId],
-    references: [community.id],
-  }),
-  user: one(user, {
-    fields: [communityMember.userId],
-    references: [user.id],
-  }),
-}));
+export const communityMemberRelations = relations(
+  communityMember,
+  ({ one }) => ({
+    community: one(community, {
+      fields: [communityMember.communityId],
+      references: [community.id],
+    }),
+    user: one(user, {
+      fields: [communityMember.userId],
+      references: [user.id],
+    }),
+  })
+);
 
 // ----------------------------------------------------------------------
 // 9. STUDY SESSIONS (New Tables)
@@ -266,7 +288,9 @@ export const communityMemberRelations = relations(communityMember, ({ one }) => 
 
 export const studySession = pgTable("study_session", {
   id: uuid("id").defaultRandom().primaryKey(),
-  hostId: text("host_id").references(() => user.id).notNull(),
+  hostId: text("host_id")
+    .references(() => user.id)
+    .notNull(),
   topic: text("topic").notNull(),
   scheduledAt: timestamp("scheduled_at").defaultNow(), // If null, it's instant
   createdAt: timestamp("created_at").defaultNow(),
@@ -274,7 +298,9 @@ export const studySession = pgTable("study_session", {
 
 export const studyInvite = pgTable("study_invite", {
   id: uuid("id").defaultRandom().primaryKey(),
-  sessionId: uuid("session_id").references(() => studySession.id).notNull(),
+  sessionId: uuid("session_id")
+    .references(() => studySession.id)
+    .notNull(),
   email: text("email").notNull(),
   status: text("status").default("pending"), // pending, accepted
 });
@@ -283,13 +309,16 @@ export const studyInvite = pgTable("study_invite", {
 // UPDATED RELATIONS
 // ----------------------------------------------------------------------
 
-export const studySessionRelations = relations(studySession, ({ one, many }) => ({
-  host: one(user, {
-    fields: [studySession.hostId],
-    references: [user.id],
-  }),
-  invites: many(studyInvite),
-}));
+export const studySessionRelations = relations(
+  studySession,
+  ({ one, many }) => ({
+    host: one(user, {
+      fields: [studySession.hostId],
+      references: [user.id],
+    }),
+    invites: many(studyInvite),
+  })
+);
 
 export const studyInviteRelations = relations(studyInvite, ({ one }) => ({
   session: one(studySession, {
@@ -302,7 +331,7 @@ export const transactionRelations = relations(transaction, ({ one }) => ({
   sender: one(user, {
     fields: [transaction.senderId],
     references: [user.id],
-    relationName: "sender", 
+    relationName: "sender",
   }),
   receiver: one(user, {
     fields: [transaction.receiverId],
@@ -313,7 +342,9 @@ export const transactionRelations = relations(transaction, ({ one }) => ({
 
 export const notification = pgTable("notification", {
   id: uuid("id").defaultRandom().primaryKey(),
-  userId: text("user_id").references(() => user.id).notNull(),
+  userId: text("user_id")
+    .references(() => user.id)
+    .notNull(),
   title: text("title").notNull(),
   message: text("message"),
   type: text("type").default("info"), // info, message, credit, system

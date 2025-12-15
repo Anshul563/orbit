@@ -18,14 +18,16 @@ import { toast } from "sonner"; // or your preferred toast
 import { useUploadThing } from "@/lib/uploadthing";
 
 interface ImageUploadCropperProps {
-  aspectRatio: number; // 1 for square, 4/1 for cover
-  onUploadComplete: (url: string) => void;
+  aspectRatio?: number; // 1 for square, 4/1 for cover
+  onUploadComplete?: (url: string) => void;
+  onImageCropped?: (blob: Blob) => void;
   variant?: "avatar" | "cover";
 }
 
 export function ImageUploadCropper({
-  aspectRatio,
+  aspectRatio = 1,
   onUploadComplete,
+  onImageCropped,
   variant = "avatar",
 }: ImageUploadCropperProps) {
   const [imageSrc, setImageSrc] = useState<string | null>(null);
@@ -65,14 +67,21 @@ export function ImageUploadCropper({
       const croppedBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
       if (!croppedBlob) throw new Error("Could not crop image");
 
+      if (onImageCropped) {
+        onImageCropped(croppedBlob);
+        setIsOpen(false);
+        setImageSrc(null);
+        return;
+      }
+
+      // Upload to UploadThing
       const file = new File([croppedBlob], "cropped-image.jpg", {
         type: "image/jpeg",
       });
 
-      // Upload to UploadThing
       const res = await startUpload([file]);
 
-      if (res && res[0]) {
+      if (res && res[0] && onUploadComplete) {
         onUploadComplete(res[0].url);
         setIsOpen(false);
         setImageSrc(null);

@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { message, post, swap, user } from "@/db/schema";
+import { message, post, swap, user, notification } from "@/db/schema"; // Added notification
 import { eq, or, and, desc, asc } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
@@ -34,7 +34,6 @@ export async function getConversations() {
   });
 
   // Enrich with the "Other User" details manually
-  // (In a real app, you'd use a more complex join, but this is clearer for learning)
   const enrichedSwaps = await Promise.all(
     mySwaps.map(async (s) => {
       const otherUserId =
@@ -84,8 +83,7 @@ export async function sendMessage(swapId: string, content: string) {
     })
     .returning();
 
-  // 2. Trigger Real-time Event (Pusher)
-  // Channel: "swap-{swapId}" | Event: "incoming-message"
+  // 2. Trigger Real-time Event (Pusher) - For Chat Interface
   await pusherServer.trigger(`swap-${swapId}`, "incoming-message", {
     id: newMessage.id,
     content: newMessage.content,
@@ -94,6 +92,40 @@ export async function sendMessage(swapId: string, content: string) {
     senderName: session.user.name,
     senderImage: session.user.image,
   });
+
+  // 3. NOTIFICATION LOGIC (New)
+  // Fetch swap details to find who the other person is
+  const swapDetails = await db.query.swap.findFirst({
+    where: eq(swap.id, swapId),
+  });
+
+  if (swapDetails) {
+    // Determine recipient: if I am requester, send to provider, and vice versa
+    const recipientId =
+      swapDetails.requesterId === session.user.id
+        ? swapDetails.providerId
+        : swapDetails.requesterId;
+
+    if (recipientId) {
+      // A. Create Notification Record
+      const [newNotif] = await db
+        .insert(notification)
+        .values({
+          userId: recipientId,
+          title: `New Message from ${session.user.name}`,
+          message: content.substring(0, 50) + (content.length > 50 ? "..." : ""),
+          type: "message",
+          link: `/dashboard/messages`, // Or specific chat link if you implement routing params
+        })
+        .returning();
+
+      // B. Trigger Pusher Event - For Notification Bell
+      await pusherServer.trigger(`user-${recipientId}`, "notification", {
+        ...newNotif,
+        createdAt: newNotif.createdAt?.toISOString(),
+      });
+    }
+  }
 
   return { success: true };
 }
@@ -105,8 +137,6 @@ export async function createTestConversation() {
   // 1. Create (or find) a Demo Bot User
   const botId = "orbit-demo-bot";
 
-  // Check if bot exists, if not create it
-  // (We use a raw insert/ignore logic or just try-catch for simplicity)
   try {
     await db
       .insert(user)
@@ -120,7 +150,7 @@ export async function createTestConversation() {
         updatedAt: new Date(),
         credits: 999,
       })
-      .onConflictDoNothing(); // If bot exists, do nothing
+      .onConflictDoNothing();
   } catch (e) {
     // Ignore error if bot exists
   }
@@ -178,31 +208,40 @@ export async function getCallToken(swapId: string) {
 }
 
 // Update sendMessage to allow "system" messages for calls
-export async function sendCallNotification(swapId: string, type: "audio" | "video") {
-    const session = await auth.api.getSession({ headers: await headers() });
-    if (!session) throw new Error("Unauthorized");
+export async function sendCallNotification(
+  swapId: string,
+  type: "audio" | "video"
+) {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) throw new Error("Unauthorized");
 
-    const content = type === "video" ? "📹 Started a Video Call" : "📞 Started a Voice Call";
-    
-    // Save to DB so it persists in history
-    const [newMessage] = await db.insert(message).values({
-        swapId,
-        senderId: session.user.id,
-        content: content,
-        // We can use a flag or specific text pattern to identify call messages
-        // For now, simple text is fine. In a real app, add a 'type' column to message table.
-    }).returning();
+  const content =
+    type === "video" ? "📹 Started a Video Call" : "📞 Started a Voice Call";
 
-    // Trigger Pusher with a special event type
-    await pusherServer.trigger(`swap-${swapId}`, "incoming-call", {
-        id: newMessage.id,
-        content: content,
-        senderId: session.user.id,
-        createdAt: newMessage.createdAt,
-        callType: type, // Custom payload
-        senderName: session.user.name,
-        senderImage: session.user.image,
-    });
+  // Save to DB so it persists in history
+  const [newMessage] = await db
+    .insert(message)
+    .values({
+      swapId,
+      senderId: session.user.id,
+      content: content,
+    })
+    .returning();
 
-    return { success: true };
+  // Trigger Chat Event
+  await pusherServer.trigger(`swap-${swapId}`, "incoming-call", {
+    id: newMessage.id,
+    content: content,
+    senderId: session.user.id,
+    createdAt: newMessage.createdAt,
+    callType: type,
+    senderName: session.user.name,
+    senderImage: session.user.image,
+  });
+  
+  // OPTIONAL: Also trigger a Notification Bell alert for the call?
+  // Usually calls ring immediately, but a notification record is good for missed calls.
+  // ... (Similar logic to sendMessage notification above if desired)
+
+  return { success: true };
 }

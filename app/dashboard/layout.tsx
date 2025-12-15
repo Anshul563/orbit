@@ -10,6 +10,7 @@ import { MobileSidebar } from "@/components/mobile-sidebar"; // <--- Import this
 
 import { SidebarProvider } from "@/components/sidebar-provider";
 import { SidebarTrigger } from "@/components/sidebar-trigger";
+import { NotificationButton } from "@/components/notification-button";
 
 export default async function DashboardLayout({
   children,
@@ -31,7 +32,7 @@ export default async function DashboardLayout({
     <SidebarProvider>
       <div className="flex h-screen overflow-hidden">
         {/* 1. Desktop Sidebar (Hidden on Mobile) */}
-        <aside className="hidden md:block h-full bg-slate-50 border-r transition-all duration-300 ease-in-out">
+        <aside className="hidden md:block h-full border-r transition-all duration-300 ease-in-out">
           {/* Pass user prop if AppSidebar expects it, e.g. <AppSidebar user={session.user} /> */}
           <AppSidebar
             user={{
@@ -56,7 +57,7 @@ export default async function DashboardLayout({
 
             {/* RIGHT SIDE: User Actions */}
             <div className="ml-auto flex items-center gap-4">
-              <span className="text-sm font-medium text-slate-600 hidden md:block">
+              <span className="text-sm font-medium  hidden md:block">
                 Balance:{" "}
                 <span className="text-blue-600 font-bold">
                   {currentUser?.credits ?? 0} Credits
@@ -66,11 +67,12 @@ export default async function DashboardLayout({
                 user={session.user}
                 credits={currentUser?.credits ?? 0}
               />
+              <NotificationButton userId={session.user.id} />
             </div>
           </header>
 
           {/* Scrollable Page Content */}
-          <main className="flex-1 overflow-auto p-4 md:p-6 bg-slate-50/50">
+          <main className="flex-1 overflow-auto p-4 md:p-6 ">
             {children}
           </main>
         </div>

@@ -3,10 +3,20 @@
 import { AccessToken } from "livekit-server-sdk";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { studyInvite, studySession } from "@/db/schema";
+import { studyInvite, studySession, notification, user } from "@/db/schema"; // Added notification & user
 import { desc, gte, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { revalidatePath } from "next/cache";
+import Pusher from "pusher"; // Or import { pusherServer } from "@/lib/pusher";
+
+// Initialize Pusher (If you don't have a shared lib/pusher.ts)
+const pusherServer = new Pusher({
+  appId: process.env.PUSHER_APP_ID!,
+  key: process.env.NEXT_PUBLIC_PUSHER_KEY!,
+  secret: process.env.PUSHER_SECRET!,
+  cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+  useTLS: true,
+});
 
 export async function getToken(room: string) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -24,7 +34,6 @@ export async function getToken(room: string) {
     }
   );
 
-  // Grant permissions: can publish data, listen, and join the specific room
   at.addGrant({
     roomJoin: true,
     room: room,
@@ -32,7 +41,6 @@ export async function getToken(room: string) {
     canSubscribe: true,
   });
 
-  // Verify session exists and get topic
   const sessionData = await db.query.studySession.findFirst({
     where: eq(studySession.id, room),
   });
@@ -50,7 +58,7 @@ export async function createStudySession(formData: FormData) {
   if (!session) throw new Error("Unauthorized");
 
   const topic = formData.get("topic") as string;
-  const dateStr = formData.get("date") as string; // "2024-01-01T12:00"
+  const dateStr = formData.get("date") as string;
   const emails = (formData.get("emails") as string)
     .split(",")
     .map((e) => e.trim())
@@ -66,15 +74,41 @@ export async function createStudySession(formData: FormData) {
     })
     .returning();
 
-  // 2. Save Invites
+  // 2. Handle Invites & Notifications
   if (emails.length > 0) {
+    // A. Save Invite Records (Status tracking)
     await db.insert(studyInvite).values(
       emails.map((email) => ({
         sessionId: newSession.id,
         email: email,
       }))
     );
-    // TODO: Integrate an email service (e.g. Resend) here to actually send the email.
+
+    // B. Send Notifications to Registered Users
+    // Iterate through emails to find matches in our DB
+    for (const email of emails) {
+        const targetUser = await db.query.user.findFirst({
+            where: eq(user.email, email)
+        });
+
+        if (targetUser) {
+            // 1. Create Notification Record
+            const [notif] = await db.insert(notification).values({
+                userId: targetUser.id,
+                title: "Study Room Invite 📚",
+                message: `${session.user.name} invited you to join "${topic}"`,
+                type: "info",
+                link: `/dashboard/study?room=${newSession.id}`,
+            }).returning();
+
+            // 2. Trigger Real-time Bell (Pusher)
+            await pusherServer.trigger(`user-${targetUser.id}`, "notification", {
+                ...notif,
+                createdAt: notif.createdAt?.toISOString()
+            });
+        }
+        // TODO: Else, send an actual email invite for non-registered users
+    }
   }
 
   revalidatePath("/dashboard/study");
@@ -84,9 +118,8 @@ export async function createStudySession(formData: FormData) {
 export async function getUpcomingSessions() {
   const session = await auth.api.getSession({ headers: await headers() });
 
-  // Fetch sessions scheduled for the future (or recent past)
   return await db.query.studySession.findMany({
-    where: gte(studySession.scheduledAt, new Date(Date.now() - 1000 * 60 * 60)), // Hide sessions older than 1 hour
+    where: gte(studySession.scheduledAt, new Date(Date.now() - 1000 * 60 * 60)),
     orderBy: [desc(studySession.scheduledAt)],
     with: {
       host: { columns: { name: true, image: true } },

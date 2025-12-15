@@ -310,3 +310,14 @@ export const transactionRelations = relations(transaction, ({ one }) => ({
     relationName: "receiver",
   }),
 }));
+
+export const notification = pgTable("notification", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id").references(() => user.id).notNull(),
+  title: text("title").notNull(),
+  message: text("message"),
+  type: text("type").default("info"), // info, message, credit, system
+  link: text("link"), // Optional URL to redirect to
+  read: boolean("read").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});

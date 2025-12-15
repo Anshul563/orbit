@@ -77,7 +77,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
       {/* SIDEBAR (Desktop + Mobile) */}
       <div
         className={cn(
-          "flex flex-col h-full bg-background/50 text-slate-900 transition-all duration-300 ease-in-out",
+          "flex flex-col h-full  transition-all duration-300 ease-in-out",
           isCollapsed ? "w-16" : "w-full md:w-64"
         )}
       >
@@ -186,7 +186,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
                     <span className="text-sm font-medium truncate w-full">
                       {user.name}
                     </span>
-                    <span className="text-xs text-muted-foreground truncate w-full">
+                    <span className="text-xs  truncate w-full">
                       {user.email}
                     </span>
                   </div>

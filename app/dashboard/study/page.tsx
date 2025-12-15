@@ -57,7 +57,7 @@ export default function StudyPage() {
         </h3>
         
         {sessions.length === 0 ? (
-           <div className="text-center py-12 bg-slate-50 border border-dashed rounded-xl">
+           <div className="text-center py-12 border border-dashed rounded-xl">
              <p className="text-slate-500">No scheduled sessions. Create one above!</p>
            </div>
         ) : (
@@ -72,7 +72,7 @@ export default function StudyPage() {
                             <Badge variant={isLive ? "default" : "outline"} className={isLive ? "bg-red-500 hover:bg-red-600" : ""}>
                                 {isLive ? "LIVE NOW" : "Scheduled"}
                             </Badge>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition" onClick={(e) => copyLink(e, session.id)}>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 opacity-90 group-hover:opacity-100 transition" onClick={(e) => copyLink(e, session.id)}>
                                 <Copy className="h-3 w-3 text-slate-400" />
                             </Button>
                         </div>

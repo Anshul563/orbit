@@ -5,6 +5,7 @@ import { gsap } from "gsap";
 import { GoArrowUpRight } from "react-icons/go";
 import { AnimatedThemeToggler } from "./ui/animated-theme-toggler";
 import { Button } from "./ui/button";
+import Link from "next/link";
 
 type CardNavLink = {
   label: string;
@@ -202,6 +203,7 @@ const CardNav: React.FC<CardNavProps> = ({
           </div>
 
           <div className="flex gap-1.5">
+            <Link href="/login">
             <Button
               type="button"
               variant={"secondary"}
@@ -210,6 +212,7 @@ const CardNav: React.FC<CardNavProps> = ({
             >
               Get Started
             </Button>
+            </Link>
             <AnimatedThemeToggler />
           </div>
         </div>

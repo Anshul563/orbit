@@ -6,6 +6,7 @@ import {
   boolean,
   uuid,
   pgEnum,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -350,5 +351,23 @@ export const notification = pgTable("notification", {
   type: text("type").default("info"), // info, message, credit, system
   link: text("link"), // Optional URL to redirect to
   read: boolean("read").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Track every swipe action
+export const swipe = pgTable("swipe", {
+  swiperId: text("swiper_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  targetId: text("target_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  action: text("action", { enum: ["like", "pass"] }).notNull(), // 'like' or 'pass'
+  createdAt: timestamp("created_at").defaultNow(),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.swiperId, t.targetId] }), // Prevent duplicate swipes
+}));
+
+// Track successful matches
+export const match = pgTable("match", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  user1Id: text("user1_id").notNull().references(() => user.id),
+  user2Id: text("user2_id").notNull().references(() => user.id),
   createdAt: timestamp("created_at").defaultNow(),
 });

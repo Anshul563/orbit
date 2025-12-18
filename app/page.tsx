@@ -90,7 +90,7 @@ export default async function Home() {
           </p>
 
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-10 duration-700 delay-200">
-            <Link href="/sign-up">
+            <Link href="/login">
               <Button size="lg" className="" variant={"default"}>
                 Start Swapping <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -98,7 +98,7 @@ export default async function Home() {
             <Button variant="link" className="">
               Explore Marketplace
             </Button>
-            <GoogleAuthButton />
+            
           </div>
 
           {/* Hero Visual / Dashboard Preview */}

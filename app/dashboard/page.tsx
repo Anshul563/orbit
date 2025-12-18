@@ -47,6 +47,11 @@ export default async function Dashboard() {
             </span>{" "}
             available to trade.
           </p>
+          <Link href="/dashboard/match">
+            <Button className="mt-2" variant="outline">
+              Find your project Partner
+            </Button>
+          </Link>
         </section>
 
         {/* QUICK ACTIONS */}

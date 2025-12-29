@@ -58,13 +58,13 @@ export default async function Home() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
             </span>
-            Live at 50+ Universities
+            Loved by 500+ Students
           </div>
 
           <h1 className="text-5xl md:text-7xl font-display font-bold tracking-tight dark:text-white text-slate-900 mb-6 animate-in fade-in slide-in-from-bottom-6 duration-700">
-            Turn Your Knowledge <br />
+            Don't Spend Money. <br />
             <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 to-indigo-600">
-              <AuroraText>Into Currency.</AuroraText>
+              <AuroraText>Spend Talent.</AuroraText>
             </span>
           </h1>
 
